@@ -43,6 +43,8 @@ jobs:
           uses: JRubics/poetry-publish@v2.1
           with:
               pypi_token: ${{ secrets.PYPI_TOKEN }}
+              package_directory: ../../confy_addons
+              poetry_install_options: "--without dev"
         
         - name: Download CHANGELOG artifact
           uses: actions/download-artifact@v5

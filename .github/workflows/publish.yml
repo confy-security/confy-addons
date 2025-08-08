@@ -1,0 +1,58 @@
+name: Publish
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  generate_changelog:
+    name: Generate Changelog
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+      
+      - name: Install github_changelog_generator
+        run: gem install github_changelog_generator
+
+      - name: Generate Changelog
+        run: |
+          git fetch --tags --force
+          latest_tag=$(git describe --tags `git rev-list --tags --max-count=1`)
+          github_changelog_generator -u confy-security -p confy-addons --since-tag $latest_tag
+        env:
+          CHANGELOG_GITHUB_TOKEN: ${{ secrets.CHANGELOG_GITHUB_TOKEN }}
+      
+      - name: Upload CHANGELOG file
+        uses: actions/upload-artifact@v4
+        with:
+          name: CHANGELOG
+          path: CHANGELOG.md
+
+  publish:
+    name: Publish Package
+    runs-on: ubuntu-latest
+    steps:
+        - name: Build and publish to PyPi
+          uses: JRubics/poetry-publish@v2.1
+          with:
+              pypi_token: ${{ secrets.PYPI_TOKEN }}
+        
+        - name: Download CHANGELOG artifact
+          uses: actions/download-artifact@v5
+          with:
+            name: CHANGELOG
+            path: .
+        
+        - name: Release
+          uses: softprops/action-gh-release@v2
+          if: startsWith(github.ref, 'refs/tags/')
+          with:
+            prerelease: false
+            body_path: ./CHANGELOG.md

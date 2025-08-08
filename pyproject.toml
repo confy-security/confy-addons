@@ -1,0 +1,62 @@
+[project]
+name = "confy-addons"
+version = "0.1.0"
+description = "Componentes adicionais de clientes Confy"
+authors = [
+    {name = "Henrique Sebastião",email = "contato@henriquesebastiao.com"}
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Telecommunications Industry",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Natural Language :: English",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: MacOS",
+    "Operating System :: Unix",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Communications :: Chat",
+    "Topic :: Security :: Cryptography",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Utilities",
+]
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.13,<4.0"
+dependencies = [
+    "cryptography (>=45.0.6,<46.0.0)"
+]
+
+[tool.poetry]
+packages = [{include = "confy_addons"}]
+
+[tool.poetry.urls]
+"Source" = "https://github.com/confy-security/confy-addons"
+"Bug Tracker" = "https://github.com/confy-security/confy-addons/issues"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.12.8"
+taskipy = "^1.14.1"
+radon = "^6.0.1"
+bandit = "^1.8.6"
+
+[tool.ruff]
+line-length = 99
+
+[tool.ruff.lint]
+preview = true
+select = ['I', 'F', 'E', 'W', 'PL', 'PT']
+
+[tool.ruff.format]
+preview = true
+quote-style = 'single'
+
+[tool.taskipy.tasks]
+lint = 'ruff check .; ruff check . --diff'
+format = 'ruff format .; ruff check . --fix'
+radon = 'radon cc ./confy_addons -a -na'
+bandit = 'bandit -r ./confy_addons'

@@ -1,4 +1,33 @@
-# Código de Conduta
+# Código de Conduta (Code of Conduct)
+
+<details><summary>➡️ Click here for English version</summary><br>
+
+## Commitment
+
+We want to maintain this project as a welcoming, safe, and collaborative environment, where everyone is treated with respect, regardless of age, gender identity, sexual orientation, ethnicity, religion, experience level, or any other personal characteristic.
+
+### Best Practices
+
+- Use respectful and inclusive language
+- Be collaborative and open to different opinions
+- Accept constructive criticism graciously
+- Focus on what's best for the project and the community
+
+### Unacceptable Behaviors
+
+- Harassment, discrimination, or insults
+- Sexualized language or content
+- Threats or personal attacks
+- Unauthorized disclosure of private information
+
+## Enforcement
+
+Violations can be reported to confy@henriquesebastiao.com.
+Maintainers may warn, restrict, or ban participants who violate this code.
+
+---
+
+</details>
 
 ## Compromisso
 

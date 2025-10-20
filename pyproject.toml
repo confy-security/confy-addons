@@ -58,7 +58,7 @@ line-length = 99
 
 [tool.ruff.lint]
 preview = true
-select = ['I', 'F', 'E', 'W', 'PL', 'PT', 'D']
+select = ['I', 'F', 'E', 'W', 'PL', 'PT', 'D', 'DOC', 'UP', 'PERF']
 
 [tool.ruff.format]
 preview = true

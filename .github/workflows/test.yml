@@ -35,7 +35,7 @@ jobs:
         run: poetry run bandit -r ./confy_addons
   
   test:
-    name: Run Tests on Multiple Python Versions
+    name: Run Tests
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -63,7 +63,7 @@ jobs:
         run: poetry run pytest -s -x --cov=confy_addons -vv
   
   test-with-coverage:
-    name: Run Tests with Coverage on Python 3.14
+    name: Run Tests on Python 3.14
     runs-on: ubuntu-latest
     steps:
       - name: Copy files from repo

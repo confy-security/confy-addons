@@ -12,6 +12,8 @@
 
 <div align="center">
 
+[![Test](https://github.com/confy-security/confy-addons/actions/workflows/test.yml/badge.svg)](https://github.com/confy-security/confy-addons/actions/workflows/test.yml)
+[![Coverage](https://coverage-badge.samuelcolvin.workers.dev/confy-security/confy-addons.svg)](https://coverage-badge.samuelcolvin.workers.dev/redirect/confy-security/confy-addons)
 [![PyPI - Version](https://img.shields.io/pypi/v/confy-addons?color=blue)](https://pypi.org/project/confy-addons/)
 [![GitHub License](https://img.shields.io/github/license/confy-security/confy-addons?color=blue)](/LICENSE)
 [![Visitors](https://api.visitorbadge.io/api/visitors?path=confy-security%2Fconfy-addons&label=repository%20visits&countColor=%231182c3&style=flat)](https://github.com/confy-security/confy-addons)

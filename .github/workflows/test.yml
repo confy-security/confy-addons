@@ -33,6 +33,9 @@ jobs:
     
       - name: Run Bandit
         run: poetry run bandit -r ./confy_addons
+      
+      - name: Run MyPy
+        run: poetry run mypy -p confy_addons -p tests
   
   test:
     name: Run Tests

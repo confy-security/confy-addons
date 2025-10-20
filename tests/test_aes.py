@@ -1,4 +1,3 @@
-
 from confy_addons.encryption import aes_decrypt, aes_encrypt, generate_aes_key
 
 AES_KEY_LEN = 32  # 256 bits

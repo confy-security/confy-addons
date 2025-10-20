@@ -45,6 +45,7 @@ radon = "^6.0.1"
 bandit = "^1.8.6"
 pytest = "^8.4.2"
 pytest-cov = "^7.0.0"
+mypy = "^1.18.2"
 
 [tool.ruff]
 line-length = 99
@@ -62,10 +63,11 @@ pythonpath = "."
 addopts = '-p no:warnings'
 
 [tool.taskipy.tasks]
-lint = 'ruff check .; ruff check . --diff'
-format = 'ruff format .; ruff check . --fix'
-radon = 'radon cc ./confy_addons -a -na'
-bandit = 'bandit -r ./confy_addons'
-pre_test = 'ruff check .; ruff check . --diff'
+lint = 'poetry run ruff check .; poetry run ruff check . --diff'
+format = 'poetry run ruff format .; poetry run ruff check . --fix'
+mypy = 'poetry run mypy -p confy_addons -p tests'
+radon = 'poetry run radon cc ./confy_addons -a -na'
+bandit = 'poetry run bandit -r ./confy_addons'
+pre_test = 'poetry run ruff check .; poetry run ruff check . --diff; poetry run mypy -p confy_addons -p tests'
 test = 'poetry run pytest -s -x --cov=confy_addons -vv'
 post_test = 'poetry run coverage html'

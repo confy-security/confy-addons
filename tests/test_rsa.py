@@ -1,107 +1,126 @@
-from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives.asymmetric import rsa as RSA
 
-from confy_addons.encryption import (
+from confy_addons import (
+    RSAEncryption,
+    RSAPublicEncryption,
     deserialize_public_key,
-    generate_rsa_keypair,
-    rsa_decrypt,
-    rsa_encrypt,
-    serialize_public_key,
 )
 
 
 def test_rsa_keypair_generation_not_is_none():
-    private_key, public_key = generate_rsa_keypair()
-    assert private_key is not None
-    assert public_key is not None
+    rsa_encryption = RSAEncryption()
+    assert rsa_encryption.private_key is not None
+    assert rsa_encryption.public_key is not None
 
 
 def test_rsa_keypair_types():
-    private_key, public_key = generate_rsa_keypair()
-    assert isinstance(private_key, rsa.RSAPrivateKey)
-    assert isinstance(public_key, rsa.RSAPublicKey)
+    rsa = RSAEncryption()
+    private_key = rsa.private_key
+    public_key = rsa.public_key
+    assert isinstance(private_key, RSA.RSAPrivateKey)
+    assert isinstance(public_key, RSA.RSAPublicKey)
 
 
 def test_rsa_keypair_key_size():
     EXPECTED_KEY_SIZE = 4096
-    private_key, public_key = generate_rsa_keypair()
+    rsa = RSAEncryption()
+    private_key = rsa.private_key
+    public_key = rsa.public_key
     assert private_key.key_size == EXPECTED_KEY_SIZE
     assert public_key.key_size == EXPECTED_KEY_SIZE
 
 
 def test_rsa_keypair_public_exponent():
     EXPECTED_PUBLIC_EXPONENT = 65537
-    private_key, public_key = generate_rsa_keypair()
+    rsa = RSAEncryption()
+    private_key = rsa.private_key
+    public_key = rsa.public_key
     assert private_key.public_key().public_numbers().e == EXPECTED_PUBLIC_EXPONENT
     assert public_key.public_numbers().e == EXPECTED_PUBLIC_EXPONENT
 
 
 def test_serialize_public_key_not_empty():
-    _, public_key = generate_rsa_keypair()
-    serialized_key = serialize_public_key(public_key)
-    assert serialized_key
+    rsa = RSAEncryption()
+    assert rsa.serialized_public_key
 
 
 def test_serialize_public_key_type():
-    _, public_key = generate_rsa_keypair()
-    serialized_key = serialize_public_key(public_key)
-    assert isinstance(serialized_key, str)
+    rsa = RSAEncryption()
+    assert isinstance(rsa.serialized_public_key, bytes)
 
 
-def test_serialize_public_key_length():
-    _, public_key = generate_rsa_keypair()
-    serialized_key = serialize_public_key(public_key)
-    assert len(serialized_key) > 200  # Arbitrary length check # noqa
+def test_base64_public_key_type():
+    rsa = RSAEncryption()
+    assert isinstance(rsa.base64_public_key, str)
 
 
 def test_serialize_different_keys():
-    _, public_key1 = generate_rsa_keypair()
-    _, public_key2 = generate_rsa_keypair()
-    serialized_key1 = serialize_public_key(public_key1)
-    serialized_key2 = serialize_public_key(public_key2)
-    assert serialized_key1 != serialized_key2
+    rsa1 = RSAEncryption()
+    rsa2 = RSAEncryption()
+    assert rsa1.serialized_public_key != rsa2.serialized_public_key
 
 
 def test_deserialize_public_key_type():
-    _, public_key = generate_rsa_keypair()
-    serialized_key = serialize_public_key(public_key)
-    deserialized_key = deserialize_public_key(serialized_key)
-    assert isinstance(deserialized_key, rsa.RSAPublicKey)
+    rsa = RSAEncryption()
+    base64_key = rsa.base64_public_key
+    deserialized_key = deserialize_public_key(base64_key)
+    assert isinstance(deserialized_key, RSA.RSAPublicKey)
 
 
 def test_deserialize_public_key_equivalence():
-    _, public_key = generate_rsa_keypair()
-    serialized_key = serialize_public_key(public_key)
-    deserialized_key = deserialize_public_key(serialized_key)
-    assert public_key.public_numbers() == deserialized_key.public_numbers()
-
-
-def test_serialize_deserialize_cycle():
-    _, public_key = generate_rsa_keypair()
-    serialized_key = serialize_public_key(public_key)
-    deserialized_key = deserialize_public_key(serialized_key)
-    re_serialized_key = serialize_public_key(deserialized_key)
-    assert serialized_key == re_serialized_key
-
-
-def test_deserialize_serialized_cycle():
-    _, public_key = generate_rsa_keypair()
-    serialized_key = serialize_public_key(public_key)
-    deserialized_key = deserialize_public_key(serialized_key)
-    re_deserialized_key = deserialize_public_key(serialize_public_key(deserialized_key))
-    assert deserialized_key.public_numbers() == re_deserialized_key.public_numbers()
+    rsa = RSAEncryption()
+    original_public_key = rsa.public_key
+    base64_key = rsa.base64_public_key
+    deserialized_key = deserialize_public_key(base64_key)
+    assert original_public_key.public_numbers() == deserialized_key.public_numbers()
 
 
 def test_rsa_encrypt_decrypt_cycle():
-    private_key, public_key = generate_rsa_keypair()
-    original_data = b'This is a test message for RSA encryption and decryption.'
-    encrypted_data = rsa_encrypt(public_key, original_data)
-    decrypted_data = rsa_decrypt(private_key, encrypted_data)
-    assert original_data == decrypted_data
+    rsa = RSAEncryption()
+    public_key = rsa.public_key
+    rsa_pub = RSAPublicEncryption(public_key)
+    data = b'Test message for RSA encryption.'
+    encrypted_data = rsa_pub.encrypt(data)
+    decrypted_data = rsa.decrypt(encrypted_data)
+    assert decrypted_data == data
 
 
 def test_rsa_encrypt_different_ciphertexts():
-    _, public_key = generate_rsa_keypair()
-    data = b'Same message for encryption.'
-    encrypted_data1 = rsa_encrypt(public_key, data)
-    encrypted_data2 = rsa_encrypt(public_key, data)
+    rsa = RSAEncryption()
+    public_key = rsa.public_key
+    rsa_pub = RSAPublicEncryption(public_key)
+    data = b'Test message for RSA encryption.'
+    encrypted_data1 = rsa_pub.encrypt(data)
+    encrypted_data2 = rsa_pub.encrypt(data)
     assert encrypted_data1 != encrypted_data2
+
+
+def test_repr_rsa_encryption():
+    rsa = RSAEncryption()
+    repr_str = repr(rsa)
+    assert 'RSAEncryption' in repr_str
+    assert 'key_size' in repr_str
+    assert 'public_exponent' in repr_str
+    assert 'object at' in repr_str
+
+
+def test_key_size():
+    rsa = RSAEncryption()
+    assert isinstance(rsa.key_size, int)
+
+
+def test_repr_rsa_public_encryption():
+    rsa = RSAEncryption()
+    public_key = rsa.public_key
+    rsa_pub = RSAPublicEncryption(public_key)
+    repr_str = repr(rsa_pub)
+    assert 'RSAPublicEncryption' in repr_str
+    assert 'key=' in repr_str
+    assert 'object at' in repr_str
+
+
+def test_rsa_public_encryption_key_type():
+    rsa = RSAEncryption()
+    public_key = rsa.public_key
+    rsa_pub = RSAPublicEncryption(public_key)
+    assert isinstance(rsa_pub.key, RSA.RSAPublicKey)

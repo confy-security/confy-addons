@@ -18,8 +18,11 @@ from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey, RSAPubl
 from cryptography.hazmat.primitives.asymmetric.types import PublicKeyTypes
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
+from confy_addons.core.abstract import AESEncryptionABC
+from confy_addons.core.mixins import EncryptionMixin
 
-class RSAEncryption:
+
+class RSAEncryption(EncryptionMixin):
     """RSA encryption handler with automatic key pair generation.
 
     This class generates and manages an RSA key pair for asymmetric encryption
@@ -45,7 +48,13 @@ class RSAEncryption:
             key_size: The size of the RSA key in bits. Defaults to 4096.
             public_exponent: The public exponent value. Defaults to 65537.
 
+        Raises:
+            TypeError: If key_size is not an integer.
+
         """
+        if not isinstance(key_size, int):
+            raise TypeError('key_size must be an integer')
+
         self._key_size = key_size
         self._public_exponent = public_exponent
 
@@ -77,8 +86,14 @@ class RSAEncryption:
         Returns:
             bytes: The decrypted data.
 
+        Raises:
+            TypeError: If encrypted_data is not bytes.
+
         """
-        return self._private_key.decrypt(
+        if not isinstance(encrypted_data, bytes):
+            raise TypeError('encrypted_data must be bytes')
+
+        decrypted_data = self._private_key.decrypt(
             encrypted_data,
             padding.OAEP(
                 mgf=padding.MGF1(algorithm=hashes.SHA256()),
@@ -86,6 +101,8 @@ class RSAEncryption:
                 label=None,
             ),
         )
+
+        return decrypted_data
 
     @property
     def key_size(self) -> int:
@@ -130,7 +147,7 @@ class RSAEncryption:
             bytes: The public key in PEM-encoded bytes.
 
         """
-        return self.public_key.public_bytes(
+        return self._private_key.public_key().public_bytes(
             encoding=serialization.Encoding.PEM,
             format=serialization.PublicFormat.SubjectPublicKeyInfo,
         )
@@ -146,10 +163,15 @@ class RSAEncryption:
             str: The base64-encoded PEM representation of the public key.
 
         """
-        return base64.b64encode(self.serialized_public_key).decode()
+        serialized_public_key = self._private_key.public_key().public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
+        )
+
+        return base64.b64encode(serialized_public_key).decode()
 
 
-class RSAPublicEncryption:
+class RSAPublicEncryption(EncryptionMixin):
     """RSA encryption handler using a public key only.
 
     This class provides encryption operations using an existing RSA public key.
@@ -167,7 +189,13 @@ class RSAPublicEncryption:
         Args:
             key: An RSA public key object to use for encryption operations.
 
+        Raises:
+            TypeError: If the provided key is not an instance of RSAPublicKey.
+
         """
+        if not isinstance(key, RSAPublicKey):
+            raise TypeError('key must be an instance of RSAPublicKey')
+
         self._key = key
 
     def __repr__(self):
@@ -193,7 +221,13 @@ class RSAPublicEncryption:
         Returns:
             bytes: The encrypted data.
 
+        Raises:
+            TypeError: If the provided data is not bytes.
+
         """
+        if not isinstance(data, bytes):
+            raise TypeError('data must be bytes')
+
         return self._key.encrypt(
             data,
             padding.OAEP(
@@ -214,7 +248,7 @@ class RSAPublicEncryption:
         return self._key
 
 
-class AESEncryption:
+class AESEncryption(EncryptionMixin, AESEncryptionABC):
     """AES symmetric encryption handler.
 
     This class provides AES encryption and decryption operations in CFB mode

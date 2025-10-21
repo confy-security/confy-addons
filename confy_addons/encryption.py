@@ -38,7 +38,7 @@ class RSAEncryption(EncryptionMixin):
 
     """
 
-    def __init__(self, key_size: int = 4096, public_exponent: int = 65537):
+    def __init__(self, key_size: int = 4096):
         """Initialize RSAEncryption with a new key pair.
 
         Generates a new RSA key pair with the specified key size and public
@@ -46,7 +46,6 @@ class RSAEncryption(EncryptionMixin):
 
         Args:
             key_size: The size of the RSA key in bits. Defaults to 4096.
-            public_exponent: The public exponent value. Defaults to 65537.
 
         Raises:
             TypeError: If key_size is not an integer.
@@ -56,7 +55,7 @@ class RSAEncryption(EncryptionMixin):
             raise TypeError('key_size must be an integer')
 
         self._key_size = key_size
-        self._public_exponent = public_exponent
+        self._public_exponent = 65537
 
         self._private_key = rsa.generate_private_key(
             public_exponent=self._public_exponent, key_size=self._key_size

@@ -1,3 +1,4 @@
+import pytest
 from cryptography.hazmat.primitives.asymmetric import rsa as RSA
 
 from confy_addons import (
@@ -124,3 +125,31 @@ def test_rsa_public_encryption_key_type():
     public_key = rsa.public_key
     rsa_pub = RSAPublicEncryption(public_key)
     assert isinstance(rsa_pub.key, RSA.RSAPublicKey)
+
+
+def test_rsa_key_size_not_int():
+    with pytest.raises(TypeError) as exc_info:
+        RSAEncryption(key_size='not_a_key')
+    assert str(exc_info.value) == 'key_size must be an integer'
+
+
+def test_rsa_decrypt_encrypted_data_not_bytes():
+    rsa = RSAEncryption()
+    with pytest.raises(TypeError) as exc_info:
+        rsa.decrypt('not_bytes')
+    assert str(exc_info.value) == 'encrypted_data must be bytes'
+
+
+def test_rsa_public_encrypt_key_not_rsa_public_key():
+    with pytest.raises(TypeError) as exc_info:
+        RSAPublicEncryption(key='not_a_public_key')
+    assert str(exc_info.value) == 'key must be an instance of RSAPublicKey'
+
+
+def test_rsa_public_encrypt_data_not_bytes():
+    rsa = RSAEncryption()
+    public_key = rsa.public_key
+    rsa_pub = RSAPublicEncryption(public_key)
+    with pytest.raises(TypeError) as exc_info:
+        rsa_pub.encrypt('not_bytes')
+    assert str(exc_info.value) == 'data must be bytes'

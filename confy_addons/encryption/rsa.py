@@ -7,6 +7,7 @@ operations using RSA with OAEP padding.
 """
 
 import base64
+import binascii
 
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
@@ -14,6 +15,7 @@ from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey, RSAPubl
 from cryptography.hazmat.primitives.asymmetric.types import PublicKeyTypes
 
 from confy_addons.core.constants import DEFAULT_RSA_KEY_SIZE, RSA_PUBLIC_EXPONENT
+from confy_addons.core.exceptions import DecryptionError, EncryptionError
 from confy_addons.core.mixins import EncryptionMixin
 
 
@@ -44,17 +46,24 @@ class RSAEncryption(EncryptionMixin):
 
         Raises:
             TypeError: If key_size is not an integer.
+            ValueError: If key_size is less than the recommended minimum for security.
+            RuntimeError: If key pair generation fails.
 
         """
         if not isinstance(key_size, int):
             raise TypeError('key_size must be an integer')
+        if key_size < DEFAULT_RSA_KEY_SIZE:
+            raise ValueError(f'key_size must be at least {DEFAULT_RSA_KEY_SIZE} bits for security')
 
         self._key_size = key_size
         self._public_exponent = RSA_PUBLIC_EXPONENT
 
-        self._private_key = rsa.generate_private_key(
-            public_exponent=self._public_exponent, key_size=self._key_size
-        )
+        try:
+            self._private_key = rsa.generate_private_key(
+                public_exponent=self._public_exponent, key_size=self._key_size
+            )
+        except Exception as e:
+            raise RuntimeError('Failed to generate RSA key pair') from e
 
     def __repr__(self):
         """Return a string representation of the RSAEncryption instance.
@@ -65,8 +74,8 @@ class RSAEncryption(EncryptionMixin):
 
         """
         class_name = type(self).__name__
-        return f"""{self.__module__}.{class_name}(key_size={self._key_size!r},
-                public_exponent={self._public_exponent!r}) object at {hex(id(self))}"""
+        return f"""{self.__module__}.{class_name}(key_size={self._key_size!r})
+                object at {hex(id(self))}"""
 
     def decrypt(self, encrypted_data: bytes) -> bytes:
         """Decrypts data using the private key.
@@ -82,21 +91,27 @@ class RSAEncryption(EncryptionMixin):
 
         Raises:
             TypeError: If encrypted_data is not bytes.
+            ValueError: If encrypted_data is empty.
+            DecryptionError: If decryption fails.
 
         """
         if not isinstance(encrypted_data, bytes):
             raise TypeError('encrypted_data must be bytes')
+        if len(encrypted_data) == 0:
+            raise ValueError('encrypted_data is empty')
 
-        decrypted_data = self._private_key.decrypt(
-            encrypted_data,
-            padding.OAEP(
-                mgf=padding.MGF1(algorithm=hashes.SHA256()),
-                algorithm=hashes.SHA256(),
-                label=None,
-            ),
-        )
-
-        return decrypted_data
+        try:
+            decrypted_data = self._private_key.decrypt(
+                encrypted_data,
+                padding.OAEP(
+                    mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                    algorithm=hashes.SHA256(),
+                    label=None,
+                ),
+            )
+            return decrypted_data
+        except Exception as e:
+            raise DecryptionError('RSA decryption failed') from e
 
     @property
     def key_size(self) -> int:
@@ -217,19 +232,22 @@ class RSAPublicEncryption(EncryptionMixin):
 
         Raises:
             TypeError: If the provided data is not bytes.
+            EncryptionError: If encryption fails.
 
         """
         if not isinstance(data, bytes):
             raise TypeError('data must be bytes')
-
-        return self._key.encrypt(
-            data,
-            padding.OAEP(
-                mgf=padding.MGF1(algorithm=hashes.SHA256()),
-                algorithm=hashes.SHA256(),
-                label=None,
-            ),
-        )
+        try:
+            return self._key.encrypt(
+                data,
+                padding.OAEP(
+                    mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                    algorithm=hashes.SHA256(),
+                    label=None,
+                ),
+            )
+        except Exception as e:
+            raise EncryptionError('RSA encryption failed') from e
 
     @property
     def key(self) -> RSAPublicKey:
@@ -254,6 +272,19 @@ def deserialize_public_key(b64_key: str) -> PublicKeyTypes:
     Returns:
         PublicKeyTypes: The deserialized RSA public key object.
 
+    Raises:
+        TypeError: If b64_key is not a string.
+        ValueError: If the base64 decoding fails or the key cannot be loaded.
+
     """
-    key_bytes = base64.b64decode(b64_key.encode())
-    return serialization.load_pem_public_key(key_bytes)
+    if not isinstance(b64_key, str):
+        raise TypeError('b64_key must be a base64-encoded string')
+    try:
+        key_bytes = base64.b64decode(b64_key.encode('ascii'), validate=True)
+    except (binascii.Error, ValueError) as e:
+        raise ValueError('Invalid base64 public key') from e
+
+    try:
+        return serialization.load_pem_public_key(key_bytes)
+    except Exception as e:
+        raise ValueError('Failed to load public key from PEM') from e

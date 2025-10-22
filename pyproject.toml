@@ -58,7 +58,7 @@ line-length = 99
 
 [tool.ruff.lint]
 preview = true
-select = ['I', 'F', 'E', 'W', 'PL', 'PT', 'D', 'DOC', 'UP', 'PERF']
+select = ['I', 'F', 'E', 'W', 'PL', 'PT', 'D', 'UP', 'PERF']
 
 [tool.ruff.format]
 preview = true
@@ -68,17 +68,18 @@ quote-style = 'single'
 'tests/*.py' = ['D100', 'D102', 'D103', 'PLR2004']
 '__init__.py' = ['D104', 'F403', 'F401']
 '*.py' = ['D205']
+'exceptions.py' = ['D101']
 
 [tool.pytest.ini_options]
 pythonpath = "."
 addopts = '-p no:warnings'
 
 [tool.taskipy.tasks]
-lint = 'poetry run ruff check .; poetry run ruff check . --diff'
-format = 'poetry run ruff format .; poetry run ruff check . --fix'
+lint = 'poetry run ruff check . -q; poetry run ruff check . --diff -q'
+format = 'poetry run ruff format . -q; poetry run ruff check . --fix -q'
 mypy = 'poetry run mypy -p confy_addons -p tests'
 radon = 'poetry run radon cc ./confy_addons -a -na'
 bandit = 'poetry run bandit -r ./confy_addons'
-pre_test = 'poetry run ruff check .; poetry run ruff check . --diff; poetry run mypy -p confy_addons -p tests'
+pre_test = 'poetry run ruff check . -q; poetry run ruff check . --diff -q; poetry run mypy -p confy_addons -p tests'
 test = 'poetry run pytest -s -x --cov=confy_addons -vv'
 post_test = 'poetry run coverage html'

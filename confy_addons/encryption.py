@@ -19,6 +19,7 @@ from cryptography.hazmat.primitives.asymmetric.types import PublicKeyTypes
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
 from confy_addons.core.abstract import AESEncryptionABC
+from confy_addons.core.constants import AES_KEY_SIZE, DEFAULT_RSA_KEY_SIZE, RSA_PUBLIC_EXPONENT
 from confy_addons.core.mixins import EncryptionMixin
 
 
@@ -38,7 +39,7 @@ class RSAEncryption(EncryptionMixin):
 
     """
 
-    def __init__(self, key_size: int = 4096):
+    def __init__(self, key_size: int = DEFAULT_RSA_KEY_SIZE):
         """Initialize RSAEncryption with a new key pair.
 
         Generates a new RSA key pair with the specified key size and public
@@ -55,7 +56,7 @@ class RSAEncryption(EncryptionMixin):
             raise TypeError('key_size must be an integer')
 
         self._key_size = key_size
-        self._public_exponent = 65537
+        self._public_exponent = RSA_PUBLIC_EXPONENT
 
         self._private_key = rsa.generate_private_key(
             public_exponent=self._public_exponent, key_size=self._key_size
@@ -272,7 +273,7 @@ class AESEncryption(EncryptionMixin, AESEncryptionABC):
             ValueError: If the provided key is not 32 bytes long.
 
         """
-        self._key_size = 32  # 256 bits
+        self._key_size = AES_KEY_SIZE
 
         if key is None:
             self._key = os.urandom(self._key_size)

@@ -121,6 +121,10 @@ Encrypts a plaintext message using AES-256 in CFB mode and then decrypts it back
 
 Confy Addons relies only on [`cryptography`](https://cryptography.io/).
 
+## Contributing
+
+If you would like to contribute to the project, see more information at [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## License
 
 Confy Addons is open source software licensed under the [GPL-3.0](https://github.com/confy-security/confy-addons/blob/main/LICENSE) license.

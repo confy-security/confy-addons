@@ -1,5 +1,31 @@
 # Changelog
 
+## [1.0.2](https://github.com/confy-security/confy-addons/tree/1.0.2) (2025-10-22)
+
+[Full Changelog](https://github.com/confy-security/confy-addons/compare/1.0.1...1.0.2)
+
+**Implemented enhancements:**
+
+- Logging [\#11](https://github.com/confy-security/confy-addons/issues/11)
+- Implementing logs [\#22](https://github.com/confy-security/confy-addons/pull/22) ([henriquesebastiao](https://github.com/henriquesebastiao))
+
+## [1.0.1](https://github.com/confy-security/confy-addons/tree/1.0.1) (2025-10-22)
+
+[Full Changelog](https://github.com/confy-security/confy-addons/compare/1.0.0...1.0.1)
+
+**Implemented enhancements:**
+
+- Separate symmetric and asymmetric encryption code into distinct modules [\#20](https://github.com/confy-security/confy-addons/issues/20)
+- Custom exceptions [\#12](https://github.com/confy-security/confy-addons/issues/12)
+- Use constants instead of hardcoded numbers [\#9](https://github.com/confy-security/confy-addons/issues/9)
+- Validate input data [\#8](https://github.com/confy-security/confy-addons/issues/8)
+- Add error handling [\#7](https://github.com/confy-security/confy-addons/issues/7)
+- Add AES key length validation [\#6](https://github.com/confy-security/confy-addons/issues/6)
+- Handling possible errors [\#21](https://github.com/confy-security/confy-addons/pull/21) ([henriquesebastiao](https://github.com/henriquesebastiao))
+- Use constants instead of hardcoded numbers [\#19](https://github.com/confy-security/confy-addons/pull/19) ([henriquesebastiao](https://github.com/henriquesebastiao))
+- Disallowing the user to define a public\_exponent other than 65537 [\#18](https://github.com/confy-security/confy-addons/pull/18) ([henriquesebastiao](https://github.com/henriquesebastiao))
+- Implementing input data validation [\#17](https://github.com/confy-security/confy-addons/pull/17) ([henriquesebastiao](https://github.com/henriquesebastiao))
+
 ## [1.0.0](https://github.com/confy-security/confy-addons/tree/1.0.0) (2025-10-21)
 
 [Full Changelog](https://github.com/confy-security/confy-addons/compare/0.1.4...1.0.0)

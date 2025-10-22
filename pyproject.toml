@@ -1,6 +1,6 @@
 [project]
 name = "confy-addons"
-version = "1.0.1"
+version = "1.0.2"
 description = "Componentes adicionais de aplicativos clientes Confy"
 authors = [
     {name = "Henrique Sebastião",email = "contato@henriquesebastiao.com"}

@@ -6,12 +6,15 @@ decryption in CFB mode with 256-bit keys.
 """
 
 import base64
-import os
+import binascii
+import secrets
 from typing import Optional
 
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
 from confy_addons.core.abstract import AESEncryptionABC
+from confy_addons.core.constants import AES_IV_SIZE, AES_KEY_SIZE
+from confy_addons.core.exceptions import DecryptionError, EncryptionError
 from confy_addons.core.mixins import EncryptionMixin
 
 
@@ -38,18 +41,24 @@ class AESEncryption(EncryptionMixin, AESEncryptionABC):
 
         Raises:
             ValueError: If the provided key is not 32 bytes long.
+            TypeError: If the provided key is not bytes or bytearray.
 
         """
-        self._key_size = 32  # 256 bits
+        self._key_size = AES_KEY_SIZE
 
         if key is None:
-            self._key = os.urandom(self._key_size)
+            self._key = secrets.token_bytes(self._key_size)
         else:
-            if len(key) != self._key_size:
+            if not isinstance(key, (bytes, bytearray)):
+                raise TypeError('AES key must be bytes or bytearray')
+
+            key_bytes = bytes(key)
+
+            if len(key_bytes) != self._key_size:
                 raise ValueError(
                     f'AES key must be {self._key_size} bytes long ({self._key_size * 8} bits)'
                 )
-            self._key = key
+            self._key = key_bytes
 
     def __repr__(self):
         """Return a string representation of the AESEncryption instance.
@@ -60,7 +69,7 @@ class AESEncryption(EncryptionMixin, AESEncryptionABC):
 
         """
         class_name = type(self).__name__
-        return f"""{self.__module__}.{class_name}(key={self._key!r}) object at {hex(id(self))}"""
+        return f"""{self.__module__}.{class_name}(key=<hidden>) object at {hex(id(self))}"""
 
     def encrypt(self, plaintext: str) -> str:
         """Encrypts text using AES in CFB mode.
@@ -75,12 +84,24 @@ class AESEncryption(EncryptionMixin, AESEncryptionABC):
         Returns:
             str: The base64-encoded encrypted data (IV + ciphertext).
 
+        Raises:
+            EncryptionError: If an error occurs during encryption.
+            TypeError: If the plaintext is not a string.
+
         """
-        iv = os.urandom(16)
-        cipher = Cipher(algorithms.AES(self._key), modes.CFB(iv))
-        encryptor = cipher.encryptor()
-        ciphertext = encryptor.update(plaintext.encode()) + encryptor.finalize()
-        return base64.b64encode(iv + ciphertext).decode()
+        if not isinstance(plaintext, str):
+            raise TypeError('plaintext must be a str')
+
+        try:
+            iv = secrets.token_bytes(AES_IV_SIZE)
+            cipher = Cipher(algorithms.AES(self._key), modes.CFB(iv))
+            encryptor = cipher.encryptor()
+            ciphertext = (
+                encryptor.update(plaintext.encode(encoding='utf-8')) + encryptor.finalize()
+            )
+            return base64.b64encode(iv + ciphertext).decode(encoding='ascii')
+        except Exception as e:
+            raise EncryptionError('Error occurred during encryption') from e
 
     def decrypt(self, b64_ciphertext: str) -> str:
         """Decrypts base64-encoded AES encrypted data.
@@ -95,12 +116,32 @@ class AESEncryption(EncryptionMixin, AESEncryptionABC):
         Returns:
             str: The decrypted plaintext as a string.
 
+        Raises:
+            TypeError: If the b64_ciphertext is not a string.
+            ValueError: If the base64 data is invalid or too short.
+            DecryptionError: If an error occurs during decryption.
+
         """
-        data = base64.b64decode(b64_ciphertext)
-        iv, ciphertext = data[:16], data[16:]
-        cipher = Cipher(algorithms.AES(self._key), modes.CFB(iv))
-        decryptor = cipher.decryptor()
-        return (decryptor.update(ciphertext) + decryptor.finalize()).decode()
+        if not isinstance(b64_ciphertext, str):
+            raise TypeError('b64_ciphertext must be a base64-encoded str')
+
+        try:
+            data = base64.b64decode(b64_ciphertext)
+        except (binascii.Error, ValueError, TypeError) as e:
+            raise ValueError('Invalid base64 encrypted data') from e
+
+        if len(data) < AES_IV_SIZE:
+            raise ValueError('Encrypted data is too short to contain an IV and ciphertext')
+
+        iv, ciphertext = data[:AES_IV_SIZE], data[AES_IV_SIZE:]
+
+        try:
+            cipher = Cipher(algorithms.AES(self._key), modes.CFB(iv))
+            decryptor = cipher.decryptor()
+            plaintext_bytes = decryptor.update(ciphertext) + decryptor.finalize()
+            return plaintext_bytes.decode('utf-8')
+        except Exception as e:
+            raise DecryptionError('Decryption failed') from e
 
     @property
     def key(self) -> bytes:

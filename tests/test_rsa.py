@@ -1,3 +1,5 @@
+import binascii
+
 import pytest
 from cryptography.hazmat.primitives.asymmetric import rsa as RSA
 
@@ -6,6 +8,8 @@ from confy_addons import (
     RSAPublicEncryption,
     deserialize_public_key,
 )
+from confy_addons.core.constants import DEFAULT_RSA_KEY_SIZE
+from confy_addons.core.exceptions import DecryptionError, EncryptionError
 
 
 def test_rsa_keypair_generation_not_is_none():
@@ -86,7 +90,7 @@ def test_rsa_encrypt_decrypt_cycle():
     assert decrypted_data == data
 
 
-def test_rsa_encrypt_different_ciphertexts():
+def test_rsa_encrypt_different_cipher_texts():
     rsa = RSAEncryption()
     public_key = rsa.public_key
     rsa_pub = RSAPublicEncryption(public_key)
@@ -101,7 +105,6 @@ def test_repr_rsa_encryption():
     repr_str = repr(rsa)
     assert 'RSAEncryption' in repr_str
     assert 'key_size' in repr_str
-    assert 'public_exponent' in repr_str
     assert 'object at' in repr_str
 
 
@@ -153,3 +156,91 @@ def test_rsa_public_encrypt_data_not_bytes():
     with pytest.raises(TypeError) as exc_info:
         rsa_pub.encrypt('not_bytes')
     assert str(exc_info.value) == 'data must be bytes'
+
+
+def test_rsa_generate_key_failure_raises_runtime_error(monkeypatch):
+    # força generate_private_key a falhar durante a inicialização
+    def fake_generate_private_key(*args, **kwargs):
+        raise ValueError('simulated failure')
+
+    monkeypatch.setattr(
+        'confy_addons.encryption.rsa.rsa.generate_private_key', fake_generate_private_key
+    )
+
+    with pytest.raises(RuntimeError, match='Failed to generate RSA key pair'):
+        RSAEncryption()
+
+
+def test_rsa_decrypt_raises_decryption_error_on_private_decrypt_failure():
+    rsa = RSAEncryption()
+
+    class DummyPrivateKey:
+        @staticmethod
+        def decrypt(encrypted_data, padding):
+            raise ValueError('simulated decrypt failure')
+
+    # substitui a chave privada do objeto por uma que falha ao descriptografar
+    rsa._private_key = DummyPrivateKey()
+
+    with pytest.raises(DecryptionError, match='RSA decryption failed'):
+        rsa.decrypt(b'not-valid-ciphertext')
+
+
+def test_rsa_public_encrypt_raises_encryption_error_on_internal_failure():
+    rsa = RSAEncryption()
+    rsa_pub = RSAPublicEncryption(rsa.public_key)
+
+    class DummyKey:
+        @staticmethod
+        def encrypt(*args, **kwargs):
+            raise RuntimeError('simulated encrypt failure')
+
+    # substitui a chave interna para forçar falha durante encrypt()
+    rsa_pub._key = DummyKey()
+
+    with pytest.raises(EncryptionError, match='RSA encryption failed'):
+        rsa_pub.encrypt(b'test data')
+
+
+def test_deserialize_public_key_raises_on_load_failure(monkeypatch):
+    rsa = RSAEncryption()
+    b64_key = rsa.base64_public_key
+
+    def fake_load_pem_public_key(_):
+        raise ValueError('simulated load failure')
+
+    monkeypatch.setattr(
+        'confy_addons.encryption.rsa.serialization.load_pem_public_key', fake_load_pem_public_key
+    )
+
+    with pytest.raises(ValueError, match='Failed to load public key from PEM'):
+        deserialize_public_key(b64_key)
+
+
+def test_deserialize_public_key_raises_on_invalid_base64_decode(monkeypatch):
+    def fake_b64decode(_, validate=True):
+        raise binascii.Error('invalid base64')
+
+    monkeypatch.setattr('confy_addons.encryption.rsa.base64.b64decode', fake_b64decode)
+
+    with pytest.raises(ValueError, match='Invalid base64 public key'):
+        deserialize_public_key('not-a-valid-base64')
+
+
+def test_deserialize_public_key_raises_type_error_for_non_string_input():
+    with pytest.raises(TypeError, match='b64_key must be a base64-encoded string'):
+        deserialize_public_key(b'not-a-string')
+
+
+def test_rsa_decrypt_raises_value_error_on_empty_input():
+    rsa = RSAEncryption()
+    with pytest.raises(ValueError, match='encrypted_data is empty'):
+        rsa.decrypt(b'')
+
+
+def test_rsa_init_raises_on_too_small_key_size():
+    small_size = DEFAULT_RSA_KEY_SIZE - 1
+    with pytest.raises(
+        ValueError, match=f'key_size must be at least {DEFAULT_RSA_KEY_SIZE} bits for security'
+    ):
+        RSAEncryption(key_size=small_size)

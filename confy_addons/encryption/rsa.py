@@ -8,15 +8,19 @@ operations using RSA with OAEP padding.
 
 import base64
 import binascii
+import logging
 
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey, RSAPublicKey
 from cryptography.hazmat.primitives.asymmetric.types import PublicKeyTypes
 
-from confy_addons.core.constants import DEFAULT_RSA_KEY_SIZE, RSA_PUBLIC_EXPONENT
+from confy_addons.core.constants import DEFAULT_RSA_KEY_SIZE, LOGGER_LEVEL, RSA_PUBLIC_EXPONENT
 from confy_addons.core.exceptions import DecryptionError, EncryptionError
 from confy_addons.core.mixins import EncryptionMixin
+
+logging.basicConfig(level=LOGGER_LEVEL)
+logger = logging.getLogger(__name__)
 
 
 class RSAEncryption(EncryptionMixin):
@@ -51,8 +55,10 @@ class RSAEncryption(EncryptionMixin):
 
         """
         if not isinstance(key_size, int):
+            logger.error(f'Invalid key_size type: {type(key_size)}')
             raise TypeError('key_size must be an integer')
         if key_size < DEFAULT_RSA_KEY_SIZE:
+            logger.error(f'Invalid key_size value: {key_size}')
             raise ValueError(f'key_size must be at least {DEFAULT_RSA_KEY_SIZE} bits for security')
 
         self._key_size = key_size
@@ -63,7 +69,10 @@ class RSAEncryption(EncryptionMixin):
                 public_exponent=self._public_exponent, key_size=self._key_size
             )
         except Exception as e:
+            logger.error('Error occurred while generating RSA key pair: %s', e)
             raise RuntimeError('Failed to generate RSA key pair') from e
+
+        logger.debug(f'RSA key pair generated with key size: {self._key_size} bits')
 
     def __repr__(self):
         """Return a string representation of the RSAEncryption instance.
@@ -96,8 +105,10 @@ class RSAEncryption(EncryptionMixin):
 
         """
         if not isinstance(encrypted_data, bytes):
+            logger.error(f'Invalid encrypted_data type: {type(encrypted_data)}')
             raise TypeError('encrypted_data must be bytes')
         if len(encrypted_data) == 0:
+            logger.error('Invalid encrypted_data value: %s', encrypted_data)
             raise ValueError('encrypted_data is empty')
 
         try:
@@ -111,6 +122,7 @@ class RSAEncryption(EncryptionMixin):
             )
             return decrypted_data
         except Exception as e:
+            logger.error('Decryption failed: %s', e)
             raise DecryptionError('RSA decryption failed') from e
 
     @property
@@ -236,6 +248,7 @@ class RSAPublicEncryption(EncryptionMixin):
 
         """
         if not isinstance(data, bytes):
+            logger.error(f'Invalid data type: {type(data)}')
             raise TypeError('data must be bytes')
         try:
             return self._key.encrypt(
@@ -247,6 +260,7 @@ class RSAPublicEncryption(EncryptionMixin):
                 ),
             )
         except Exception as e:
+            logger.exception('Encryption failed: %s', e)
             raise EncryptionError('RSA encryption failed') from e
 
     @property
@@ -278,13 +292,16 @@ def deserialize_public_key(b64_key: str) -> PublicKeyTypes:
 
     """
     if not isinstance(b64_key, str):
+        logger.error(f'Invalid b64_key type: {type(b64_key)}')
         raise TypeError('b64_key must be a base64-encoded string')
     try:
         key_bytes = base64.b64decode(b64_key.encode('ascii'), validate=True)
     except (binascii.Error, ValueError) as e:
+        logger.error(f'Error occurred while decoding base64 key: {e}')
         raise ValueError('Invalid base64 public key') from e
 
     try:
         return serialization.load_pem_public_key(key_bytes)
     except Exception as e:
+        logger.error(f'Error occurred while loading public key from PEM: {e}')
         raise ValueError('Failed to load public key from PEM') from e

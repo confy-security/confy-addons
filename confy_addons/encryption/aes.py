@@ -7,15 +7,19 @@ decryption in CFB mode with 256-bit keys.
 
 import base64
 import binascii
+import logging
 import secrets
 from typing import Optional
 
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
 from confy_addons.core.abstract import AESEncryptionABC
-from confy_addons.core.constants import AES_IV_SIZE, AES_KEY_SIZE
+from confy_addons.core.constants import AES_IV_SIZE, AES_KEY_SIZE, LOGGER_LEVEL
 from confy_addons.core.exceptions import DecryptionError, EncryptionError
 from confy_addons.core.mixins import EncryptionMixin
+
+logging.basicConfig(level=LOGGER_LEVEL)
+logger = logging.getLogger(__name__)
 
 
 class AESEncryption(EncryptionMixin, AESEncryptionABC):
@@ -50,15 +54,18 @@ class AESEncryption(EncryptionMixin, AESEncryptionABC):
             self._key = secrets.token_bytes(self._key_size)
         else:
             if not isinstance(key, (bytes, bytearray)):
+                logger.error(f'Invalid key type: {type(key)}')
                 raise TypeError('AES key must be bytes or bytearray')
 
             key_bytes = bytes(key)
 
             if len(key_bytes) != self._key_size:
+                logger.error(f'Invalid key length: {len(key_bytes)}')
                 raise ValueError(
                     f'AES key must be {self._key_size} bytes long ({self._key_size * 8} bits)'
                 )
             self._key = key_bytes
+            logger.debug('AES encryption initialized with provided key')
 
     def __repr__(self):
         """Return a string representation of the AESEncryption instance.
@@ -90,6 +97,7 @@ class AESEncryption(EncryptionMixin, AESEncryptionABC):
 
         """
         if not isinstance(plaintext, str):
+            logger.error(f'Invalid plaintext type: {type(plaintext)}')
             raise TypeError('plaintext must be a str')
 
         try:
@@ -101,6 +109,7 @@ class AESEncryption(EncryptionMixin, AESEncryptionABC):
             )
             return base64.b64encode(iv + ciphertext).decode(encoding='ascii')
         except Exception as e:
+            logger.error(f'Error occurred during encryption: {e}')
             raise EncryptionError('Error occurred during encryption') from e
 
     def decrypt(self, b64_ciphertext: str) -> str:
@@ -123,14 +132,17 @@ class AESEncryption(EncryptionMixin, AESEncryptionABC):
 
         """
         if not isinstance(b64_ciphertext, str):
+            logger.error(f'Invalid b64_ciphertext type: {type(b64_ciphertext)}')
             raise TypeError('b64_ciphertext must be a base64-encoded str')
 
         try:
             data = base64.b64decode(b64_ciphertext)
         except (binascii.Error, ValueError, TypeError) as e:
+            logger.error(f'Error occurred during base64 decoding: {e}')
             raise ValueError('Invalid base64 encrypted data') from e
 
         if len(data) < AES_IV_SIZE:
+            logger.error(f'Invalid encrypted data length: {len(data)}')
             raise ValueError('Encrypted data is too short to contain an IV and ciphertext')
 
         iv, ciphertext = data[:AES_IV_SIZE], data[AES_IV_SIZE:]
@@ -141,6 +153,7 @@ class AESEncryption(EncryptionMixin, AESEncryptionABC):
             plaintext_bytes = decryptor.update(ciphertext) + decryptor.finalize()
             return plaintext_bytes.decode('utf-8')
         except Exception as e:
+            logger.error(f'Error occurred during decryption: {e}')
             raise DecryptionError('Decryption failed') from e
 
     @property

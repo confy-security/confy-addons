@@ -1,0 +1,7 @@
+"""Module defines constants used throughout the Confy encryption system."""
+
+from typing import Final
+
+DEFAULT_RSA_KEY_SIZE: Final[int] = 4096
+RSA_PUBLIC_EXPONENT: Final[int] = 65537
+AES_KEY_SIZE: Final[int] = 32  # 256 bits

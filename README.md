@@ -1,7 +1,7 @@
 <h1 align="center">
   <a href="https://github.com/confy-security/confy-addons" target="_blank" rel="noopener noreferrer">
     <picture>
-      <img width="80" src="https://github.com/confy-security/assets/blob/main/img/confy-app-icon.png?raw=true">
+      <img width="80" src="https://github.com/user-attachments/assets/d95cfc93-8a78-4545-a9ba-ba6b9000795b">
     </picture>
   </a>
   <br>

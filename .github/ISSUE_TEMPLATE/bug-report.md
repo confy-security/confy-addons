@@ -26,7 +26,7 @@ If applicable, add screenshots to help explain your problem.
 **Desktop (please complete the following information):**
  - OS: [e.g. Linux]
  - Python version [e.g. 3.14.0]
- - `confy-addons` version [e.g. 1.0.2]
+ - `confy-addons` version [e.g. 1.1.0]
 
 **Additional context**
 Add any other context about the problem here.

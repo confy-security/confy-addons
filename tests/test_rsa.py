@@ -9,7 +9,10 @@ from confy_addons import (
     deserialize_public_key,
 )
 from confy_addons.core.constants import DEFAULT_RSA_KEY_SIZE
-from confy_addons.core.exceptions import DecryptionError, EncryptionError
+from confy_addons.core.exceptions import (
+    DecryptionError,
+    EncryptionError,
+)
 
 
 def test_rsa_keypair_generation_not_is_none():
@@ -244,3 +247,67 @@ def test_rsa_init_raises_on_too_small_key_size():
         ValueError, match=f'key_size must be at least {DEFAULT_RSA_KEY_SIZE} bits for security'
     ):
         RSAEncryption(key_size=small_size)
+
+
+def test_sign_type_error_for_non_bytes():
+    rsa = RSAEncryption()
+    with pytest.raises(TypeError, match='data must be bytes'):
+        rsa.sign('not-bytes')  # tipo inválido
+
+
+def test_sign_value_error_for_empty_data():
+    rsa = RSAEncryption()
+    with pytest.raises(ValueError, match='data is empty'):
+        rsa.sign(b'')  # vazio
+
+
+def test_sign_and_verify_success():
+    rsa = RSAEncryption()
+    data = b'message to sign'
+    signature = rsa.sign(data)
+
+    rsa_pub = RSAPublicEncryption(rsa.public_key)
+    # verify não retorna nada se OK
+    rsa_pub.verify(data, signature)
+
+
+def test_rsa_sign_raises_runtime_error_on_internal_failure():
+    rsa = RSAEncryption()
+
+    class BadPrivateKey:
+        @staticmethod
+        def sign(*args, **kwargs):
+            raise RuntimeError('simulated signing failure')
+
+    rsa._private_key = BadPrivateKey()
+
+    with pytest.raises(RuntimeError, match='RSA signing failed'):
+        rsa.sign(b'data to sign')
+
+
+def test_verify_raises_type_error_for_non_bytes_inputs():
+    rsa = RSAEncryption()
+    rsa_pub = RSAPublicEncryption(rsa.public_key)
+
+    with pytest.raises(TypeError, match='data and signature must be bytes'):
+        rsa_pub.verify('not-bytes', b'sig')
+
+    with pytest.raises(TypeError, match='data and signature must be bytes'):
+        rsa_pub.verify(b'data', 'not-bytes')
+
+
+def test_rsa_public_verify_raises_signature_verification_error_on_unexpected_exception():
+    rsa = RSAEncryption()
+    rsa_pub = RSAPublicEncryption(rsa.public_key)
+
+    class BadKey:
+        @staticmethod
+        def verify(*args, **kwargs):
+            raise RuntimeError('internal failure')
+
+    rsa_pub._key = BadKey()
+    data = b'payload'
+    signature = b'signature'
+
+    with pytest.raises(Exception, match=r'Verification error:'):
+        rsa_pub.verify(data, signature)

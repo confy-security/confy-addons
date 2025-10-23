@@ -16,7 +16,10 @@ from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey, RSAPubl
 from cryptography.hazmat.primitives.asymmetric.types import PublicKeyTypes
 
 from confy_addons.core.constants import DEFAULT_RSA_KEY_SIZE, LOGGER_LEVEL, RSA_PUBLIC_EXPONENT
-from confy_addons.core.exceptions import DecryptionError, EncryptionError
+from confy_addons.core.exceptions import (
+    DecryptionError,
+    EncryptionError,
+)
 from confy_addons.core.mixins import EncryptionMixin
 
 logging.basicConfig(level=LOGGER_LEVEL)
@@ -124,6 +127,41 @@ class RSAEncryption(EncryptionMixin):
         except Exception as e:
             logger.error('Decryption failed: %s', e)
             raise DecryptionError('RSA decryption failed') from e
+
+    def sign(self, data: bytes) -> bytes:
+        """Signs the data using the private key with PSS padding.
+
+        Args:
+            data: The bytes to be signed.
+
+        Returns:
+            bytes: The signature.
+
+        Raises:
+            TypeError: If the data is not a byte.
+            ValueError: If the data is empty.
+            RuntimeError: If the signature fails.
+
+        """
+        if not isinstance(data, bytes):
+            logger.error(f'Invalid data type for signing: {type(data)}')
+            raise TypeError('data must be bytes')
+        if len(data) == 0:
+            logger.error('Invalid data value for signing: empty')
+            raise ValueError('data is empty')
+
+        try:
+            return self._private_key.sign(
+                data,
+                padding.PSS(
+                    mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                    salt_length=padding.PSS.MAX_LENGTH,
+                ),
+                hashes.SHA256(),
+            )
+        except Exception as e:
+            logger.exception('Signing failed: %s', e)
+            raise RuntimeError('RSA signing failed') from e
 
     @property
     def key_size(self) -> int:
@@ -262,6 +300,37 @@ class RSAPublicEncryption(EncryptionMixin):
         except Exception as e:
             logger.exception('Encryption failed: %s', e)
             raise EncryptionError('RSA encryption failed') from e
+
+    def verify(self, data: bytes, signature: bytes):
+        """Verifica a assinatura dos dados usando a chave pública.
+
+        Args:
+            data: Os dados originais que foram assinados.
+            signature: A assinatura recebida.
+
+        Raises:
+            TypeError: Se os dados ou assinatura não forem bytes.
+            SignatureVerificationError: Se a assinatura for inválida.
+
+        """
+        if not isinstance(data, bytes) or not isinstance(signature, bytes):
+            raise TypeError('data and signature must be bytes')
+
+        try:
+            self._key.verify(
+                signature,
+                data,
+                padding.PSS(
+                    mgf=padding.MGF1(algorithm=hashes.SHA256()), salt_length=padding.PSS.MAX_LENGTH
+                ),
+                hashes.SHA256(),
+            )
+            # Se chegar aqui, a verificação foi bem-sucedida
+            logger.debug('Signature verification successful')
+
+        except Exception as e:
+            logger.error(f'An unexpected error occurred during verification: {e}')
+            raise Exception(f'Verification error: {e}') from e
 
     @property
     def key(self) -> RSAPublicKey:

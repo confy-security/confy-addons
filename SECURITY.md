@@ -2,7 +2,7 @@
 
 ## Reporting a Vulnerability
 
-Security is very important to Confy Addons. If you discover a security vulnerability, please report it responsibly to us immediately.
+Security is very important to Confy Security. If you discover a security vulnerability, please report it responsibly to us immediately.
 
 ### ⚠️ Important
 
@@ -412,7 +412,7 @@ A: When in doubt, please report it to [confy@henriquesebastiao.com](mailto:confy
 
 ## Acknowledgments
 
-We thank all security researchers and community members who help make Confy Addons more secure.
+We thank all security researchers and community members who help make Confy more secure.
 
 If you've responsibly disclosed a security vulnerability to us and would like to be credited, please let us know, and we'll include you in our security advisory.
 
@@ -420,4 +420,4 @@ If you've responsibly disclosed a security vulnerability to us and would like to
 
 **Next Review:** October 22, 2026
 
-**Built with ❤️ by the Confy Addons Team**
+**Built with ❤️ by the Confy Security Team**

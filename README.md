@@ -8,7 +8,7 @@
   Confy Addons
 </h1>
 
-<p align="center">Componentes adicionais de aplicativos clientes Confy.</p>
+<p align="center">Implementation of symmetric and asymmetric encryption with AES and RSA algorithms for client applications of the Confy communication system.</p>
 
 <div align="center">
 

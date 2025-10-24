@@ -1,9 +1,10 @@
 [project]
 name = "confy-addons"
 version = "1.1.0"
-description = "Componentes adicionais de aplicativos clientes Confy"
+description = "Implementation of symmetric and asymmetric encryption with AES and RSA algorithms for client applications of the Confy communication systemImplementation of symmetric and asymmetric encryption with AES and RSA algorithms for client applications of the Confy communication system"
 authors = [
-    {name = "Henrique Sebastião",email = "contato@henriquesebastiao.com"}
+    {name = "Henrique Sebastião",email = "contato@henriquesebastiao.com"},
+    {name = "Lucas Sousa", email = "lucasdedeus-15@hotmail.com"},
 ]
 classifiers = [
     "Development Status :: 5 - Production/Stable",

@@ -1,0 +1,16 @@
+pkgbase = python-confy-addons
+	pkgdesc = Implementation of symmetric and asymmetric encryption with AES and RSA algorithms for client applications of the Confy communication system
+	pkgver = 1.1.0
+	pkgrel = 1
+	url = https://github.com/confy-security/confy-addons
+	arch = any
+	license = custom:GNU General Public License v3 (GPLv3)
+	makedepends = python-poetry
+	makedepends = python-build
+	makedepends = python-installer
+	makedepends = python-wheel
+	depends = python
+	source = https://files.pythonhosted.org/packages/03/ed/5e592c4e409032d9fb2d59e25ed95c4784b1592e259f9f6feb60c8d1372d/confy_addons-1.1.0.tar.gz
+	sha256sums = 2236a5df3ebd3f99b33276495324921de140ae83a9cafd71700d1698d0372ae7
+
+pkgname = python-confy-addons

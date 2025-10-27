@@ -177,3 +177,7 @@ pyrightconfig.json
 
 # Generated using ignr.py - github.com/Antrikshy/ignr.py
 
+pkg/
+src/
+*.tar.gz
+*.tar.zst

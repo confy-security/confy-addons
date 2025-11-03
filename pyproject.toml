@@ -1,6 +1,6 @@
 [project]
 name = "confy-addons"
-version = "1.1.0"
+version = "1.2.0"
 description = "Implementation of symmetric and asymmetric encryption with AES and RSA algorithms for client applications of the Confy communication systemImplementation of symmetric and asymmetric encryption with AES and RSA algorithms for client applications of the Confy communication system"
 authors = [
     {name = "Henrique Sebastião",email = "contato@henriquesebastiao.com"},

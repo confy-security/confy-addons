@@ -1,3 +1,6 @@
+pkgbuild:
+	pip2pkgbuild confy_addons -p python -n confy-addon;
+
 build:
 	makepkg --syncdeps;
 

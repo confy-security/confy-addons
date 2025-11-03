@@ -1,29 +1,24 @@
-# Maintainer: Henrique Sebastião <contato@henriquesebastiao.com>
-
-pkgname='python-confy-addons'
+pkgname='confy-addons'
 _module='confy-addons'
-_src_folder='confy_addons-1.1.0'
-pkgver='1.1.0'
+_src_folder='confy_addons-1.2.0'
+pkgver='1.2.0'
 pkgrel=1
-pkgdesc="Implementation of symmetric and asymmetric encryption with AES and RSA algorithms for client applications of the Confy communication system"
+pkgdesc="Implementation of symmetric and asymmetric encryption with AES and RSA algorithms for client applications of the Confy communication systemImplementation of symmetric and asymmetric encryption with AES and RSA algorithms for client applications of the Confy communication system"
 url="https://github.com/confy-security/confy-addons"
 depends=('python')
-makedepends=('python-poetry' 'python-build' 'python-installer' 'python-wheel')
+makedepends=('python-build' 'python-installer' 'python-wheel')
 license=('custom:GNU General Public License v3 (GPLv3)')
 arch=('any')
-source=("https://files.pythonhosted.org/packages/03/ed/5e592c4e409032d9fb2d59e25ed95c4784b1592e259f9f6feb60c8d1372d/confy_addons-1.1.0.tar.gz")
-sha256sums=('2236a5df3ebd3f99b33276495324921de140ae83a9cafd71700d1698d0372ae7')
+source=("https://files.pythonhosted.org/packages/d0/38/09229b8468a40746c6c1ea0c5ab580bd808c7968f4739cb353ca5828c401/confy_addons-1.2.0.tar.gz")
+sha256sums=('0cdfb7ff7e2a354aae912e11acd915fcbdc0fe560e8ca211613700512ec1b6cf')
 
 build() {
     cd "${srcdir}/${_src_folder}"
-    poetry build -f wheel --no-interaction --no-ansi --no-cache
+    python -m build --wheel --no-isolation
 }
 
 package() {
+
     cd "${srcdir}/${_src_folder}"
-
-    install -Dm644 -t "${pkgdir}/usr/share/licenses/${pkgname}" LICENSE
-    install -Dm644 -t "${pkgdir}/usr/share/doc/${pkgname}" README.md
-
     python -m installer --destdir="${pkgdir}" dist/*.whl
 }

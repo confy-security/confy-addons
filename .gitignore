@@ -3,3 +3,5 @@ pkg/
 src/
 *.tar.gz
 *.zst
+.idea/
+.coverage
